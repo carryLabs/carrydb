@@ -1,0 +1,5 @@
+# show sample example
+# 执行所有用例
+python test_table.py
+# 执行某个用例
+python -m unittest -v test_table.TestTableMethods.test_update_incrby
