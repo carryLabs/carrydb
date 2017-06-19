@@ -10,5 +10,6 @@ CARRYDB is a high performace key-value(key-string, key-zset, key-hashmap, key-co
 
 ## LICENSE
 
-CARRYDB is licensed under [New BSD License](http://opensource.org/licenses/BSD-3-Clause), a very flexible license to use.
+ CARRYDB is licensed under [New BSD License](http://opensource.org/licenses/BSD-3-Clause), a very flexible license to use.
+
 
