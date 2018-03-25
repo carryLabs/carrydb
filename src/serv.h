@@ -13,7 +13,6 @@ found in the LICENSE file.
 #include "db/ssdb_impl.h"
 #include "db/ttl.h"
 #include "db/rubbish_release.h"
-#include "db/monitor_thread.h"
 #include "backend_dump.h"
 #include "backend_sync.h"
 #include "slave.h"
@@ -36,7 +35,6 @@ public:
 	BackendSync *backend_sync;
 	ExpirationHandler *expiration;
 	RubbishRelease *releasehandler;
-	MonitorThread *monitor_handler;
 	std::vector<Slave *> slaves;
 	bool is_compact_ = false;
 

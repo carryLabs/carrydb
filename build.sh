@@ -3,7 +3,6 @@ BASE_DIR=`pwd`
 JEMALLOC_PATH="$BASE_DIR/deps/jemalloc-4.1.0"
 LEVELDB_PATH="$BASE_DIR/deps/rocksdb-4.9"
 SNAPPY_PATH="$BASE_DIR/deps/snappy-1.1.0"
-BSON_PATH="$BASE_DIR/deps/libbson-1.6.0"
 
 ln -snf $LEVELDB_PATH/include/rocksdb $LEVELDB_PATH/include/leveldb
 
@@ -83,18 +82,6 @@ if [ ! -f Makefile ]; then
 fi
 cd "$DIR"
 
-
-DIR=`pwd`
-cd $BSON_PATH
-if [ ! -f Makefile ]; then
-	echo `pwd`
-	echo "##### building libbson... #####"
-	sh ./autogen.sh && ./configure && make
-	echo "##### building libbson finished #####"
-	echo ""
-fi
-cd "$DIR"
-
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)
 		echo "not using jemalloc on $TARGET_OS"
@@ -143,19 +130,16 @@ echo "MAKE=$MAKE" >> build_config.mk
 echo "LEVELDB_PATH=$LEVELDB_PATH" >> build_config.mk
 echo "JEMALLOC_PATH=$JEMALLOC_PATH" >> build_config.mk
 echo "SNAPPY_PATH=$SNAPPY_PATH" >> build_config.mk
-echo "BSON_PATH=$BSON_PATH" >> build_config.mk
 
 echo "CFLAGS=" >> build_config.mk
 echo "CFLAGS = -std=c++0x -DNDEBUG -D__STDC_FORMAT_MACROS -Wall -O2 -Wno-sign-compare" >> build_config.mk
 echo "CFLAGS += ${PLATFORM_CFLAGS}" >> build_config.mk
 echo "CFLAGS += -I \"$LEVELDB_PATH/include\"" >> build_config.mk
-echo "CFLAGS += -I \"$BSON_PATH/src\"" >> build_config.mk
 
 echo "CLIBS=" >> build_config.mk
 echo "CLIBS += -lbz2 -lz \"$LEVELDB_PATH/librocksdb.a\"" >> build_config.mk
 #echo "CLIBS += -L \"/usr/local/lib\" -lbz2 -lz -llz4">> build_config.mk
 echo "CLIBS += \"$SNAPPY_PATH/.libs/libsnappy.a\"" >> build_config.mk
-echo "CLIBS += \"$BSON_PATH/.libs/libbson.a\"" >> build_config.mk
 
 case "$TARGET_OS" in
 	CYGWIN*|FreeBSD|OS_ANDROID_CROSSCOMPILE)

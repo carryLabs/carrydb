@@ -73,7 +73,7 @@ std::string Slave::stats() const{
 	}else{
 		s.append("slave_type:sync\r\n");
 	}
-
+    
 	s.append("slave_status:");
 	switch(status){
 	case DISCONNECTED:
@@ -597,127 +597,6 @@ int Slave::proc_sync(const Binlog &log, const std::vector<Bytes> &req){
 					hexmem(name.data(), name.size()).c_str(),
 					hexmem(key.data(), key.size()).c_str());
 				if(ssdb->lclear(name, log_type) == -1){
-					return -1;
-				}
-			}
-			break;
-		case BinlogCommand::CLT_CREATE:
-			{
-				if(req.size() != 2){
-					break;
-				}
-				
-				std::string name;
-				unsigned int slot;
-				if(DecodeMetaKey(log.key(), &name, &slot) == -1){
-					break;
-				}
-				log_trace("slave clt_create %s", hexmem(log.key().data(), log.key().size()).c_str());
-
-				std::string value;
-				if(DecodeCltMetaVal(req[1], &value) == -1){
-					break;
-				}
-				bson_t *pd = parser_bson_from_data(value.data(), value.size());
-				if (!pd){
-					return -1;
-				}
-
-				if(ssdb->clt_create(name, &pd, log_type) == -1){
-					bson_destroy(pd);
-					return -1;
-				}
-
-				bson_destroy(pd);		
-			}
-			break;
-		case BinlogCommand::CLT_RECREATE:
-			{
-				if(req.size() != 2){
-					break;
-				}
-				std::string name;
-				if (DecodeMetaKey(log.key(), &name, nullptr) == -1){
-					break;
-				}
-				
-				log_trace("slave clt_recreate %s", hexmem(log.key().data(), log.key().size()).c_str());
-				std::string value;
-				if(DecodeCltMetaVal(req[1], &value) == -1){
-					break;
-				}
-				bson_t *pd = parser_bson_from_data(value.data(), value.size());
-				if (!pd){
-					return -1;
-				}
-				Condition opts;
-				recreate_table_config(&pd);
-
-				if (ssdb->clt_recreate(name, &pd, opts, log_type) == -1){
-					return -1;
-				}
-			}
-			break;
-		case BinlogCommand::CLT_INSERT:
-			{
-				if(req.size() != 2){
-					break;
-				}
-				std::string name;
-				if (DecodeCltPrimaryKey(log.key(), &name, NULL, NULL, NULL) == -1){
-					break;
-				}
-				log_trace("slave clt_insert %s", hexmem(log.key().data(), log.key().size()).c_str());
-
-				bson_t *pd = parser_bson_from_data(req[1].data(), req[1].size());
-				if (!pd){
-					return -1;
-				}
-				//print_bson(pd);
-				Condition opts;
-				opts.slave_upsert = true;
-				if(ssdb->clt_insert(name, pd, opts, log_type) == -1){
-					bson_destroy(pd);
-					return -1;
-				}
-				bson_destroy(pd);
-			}
-			break;
-		case BinlogCommand::CLT_DEL:
-			{
-				std::string name, key;
-				if (DecodeCltPrimaryKey(log.key(), &name, &key, nullptr, nullptr) == -1){
-					break;
-				}
-				
-				log_trace("sync_clt_remove: %s", hexmem(key.data(), key.size()).c_str());
-				if (ssdb->sync_clt_remove(name, key, log_type) == -1){
-					return -1;
-				}
-			}
-			break;
-		case BinlogCommand::CLT_CLEAR:
-			{
-				std::string name;
-				if (DecodeMetaKey(log.key(), &name, nullptr) == -1){
-					break;
-				}
-				
-				log_trace("sync_clt_clear: %s", hexmem(key.data(), key.size()).c_str());
-				if (ssdb->clt_clear(name, log_type) == -1){
-					return -1;
-				}
-			}
-			break;
-		case BinlogCommand::CLT_DROP:
-			{
-				std::string name;
-				if (DecodeMetaKey(log.key(), &name, nullptr) == -1){
-					break;
-				}
-				
-				log_trace("sync_clt_drop: %s", hexmem(key.data(), key.size()).c_str());
-				if (ssdb->clt_drop(name, log_type) == -1){
 					return -1;
 				}
 			}

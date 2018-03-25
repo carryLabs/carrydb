@@ -1,6 +1,6 @@
 include ../../build_config.mk
 
-OBJS = server.o resp.o proc.o worker.o fde.o link.o ae.o
+OBJS = server.o resp.o proc.o worker.o fde.o link.o 
 UTIL_OBJS = ../util/log.o ../util/config.o ../util/bytes.o
 EXES = test
 
@@ -19,8 +19,6 @@ worker.o: worker.h worker.cpp
 	${CXX} ${CFLAGS} -c worker.cpp
 server.o: server.h server.cpp
 	${CXX} ${CFLAGS} -c server.cpp
-ae.o: ae.h ae.cpp ae_epoll.cpp ae_select.cpp
-	${CXX} ${CFLAGS} -c ae.cpp
 test:
 	${CXX} -o test.out test.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}
 	${CXX} -o test2.out test2.cpp ${CFLAGS} ${OBJS} ${UTIL_OBJS} ${CLIBS}

@@ -18,7 +18,6 @@ found in the LICENSE file.
 #include "t_hash.h"
 #include "t_zset.h"
 #include "t_list.h"
-#include "t_table.h"
 
 SSDBImpl::SSDBImpl() {
     ldb = NULL;
@@ -591,9 +590,6 @@ int SSDBImpl::findoutName(const Bytes &name, uint32_t ref)
 
 void SSDBImpl::incrNsRefCount(char datatype, const Bytes &name, int incr) {
     //如果是meta_db,就没有设置此值
-    if (monitor_handler != nullptr) {
-        monitor_handler->incrNsRefCount(datatype, name, incr);
-    }
 }
 
 void SSDBImpl::checkObjectExpire(TMH &metainfo, const Bytes &name, int ret) {

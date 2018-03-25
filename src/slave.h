@@ -12,7 +12,6 @@ found in the LICENSE file.
 #include "db/t_zset.h"
 #include "db/t_hash.h"
 #include "db/t_list.h"
-#include "db/t_table.h"
 
 class Slave{
 private:
