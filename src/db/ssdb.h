@@ -14,7 +14,6 @@ found in the LICENSE file.
 #include "iterator.h"
 #include "leveldb/db.h"
 #include "binlog.h"
-#include "bson/bson.h"
 
 class Bytes;
 class Config;
@@ -169,20 +168,6 @@ public:
 	virtual int lget(const Bytes &name, int64_t index, std::string *item) = 0;
 	virtual int lset(const Bytes &name, int64_t index, const Bytes &item, char log_type=BinlogType::SYNC) = 0;
 	virtual int lset_by_seq(const Bytes &name, uint64_t seq, const Bytes &item, char log_type=BinlogType::SYNC) = 0;
-
-	virtual int clt_create(const Bytes &name, bson_t **data, char log_type=BinlogType::SYNC) = 0;
-	virtual int clt_insert(const Bytes &name, bson_t *data,  Condition &opts, char log_type=BinlogType::SYNC) = 0;
-	virtual int clt_find(const Bytes &name, bson_t *data, Condition &opts, std::vector<std::string> *list) = 0;
-	virtual int clt_update(const Bytes &name, bson_t *query, bson_t *update, Condition &opts, char log_type=BinlogType::SYNC) = 0;
-	virtual int clt_remove(const Bytes &name, bson_t *data, Condition &opts, char log_type=BinlogType::SYNC) = 0;
-	virtual int clt_get(const Bytes &name, bson_t *data, std::string *val) = 0;
-	virtual int clt_multi_get(const Bytes &name, const std::vector<bson_t *> &keys, std::vector<std::string> *reult) = 0;
-	virtual int clt_stat(const Bytes &name, std::string *val) = 0;
-	virtual int clt_drop(const Bytes &name,char log_type=BinlogType::SYNC) = 0;
-	virtual int clt_clear(const Bytes &name, char log_type=BinlogType::SYNC) = 0;
-	virtual int clt_recreate(const Bytes &name, bson_t **data, Condition &opts, char log_type=BinlogType::SYNC)=0;
-	virtual int clt_isbuilding(const Bytes &name) = 0;
-	virtual int sync_clt_remove(const Bytes &name, const Bytes &pkey, char log_type=BinlogType::SYNC) = 0;
 };
 
 

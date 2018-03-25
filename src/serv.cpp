@@ -130,43 +130,13 @@ DEF_PROC(lget);
 DEF_PROC(lset);
 DEF_PROC(dump);
 
-//table
-DEF_PROC(clt_create);
-DEF_PROC(clt_recreate);
-DEF_PROC(clt_isbuilding);
-DEF_PROC(clt_insert);
-DEF_PROC(clt_upsert);
-DEF_PROC(clt_find);
-DEF_PROC(clt_update);
-DEF_PROC(clt_remove);
-DEF_PROC(clt_create_pretty);
-DEF_PROC(clt_recreate_pretty);
-DEF_PROC(clt_insert_pretty);
-DEF_PROC(clt_upsert_pretty);
-DEF_PROC(clt_find_pretty);
-DEF_PROC(clt_update_pretty);
-DEF_PROC(clt_remove_pretty);
-DEF_PROC(clt_get_pretty);
-DEF_PROC(clt_get);
-DEF_PROC(clt_multi_get_pretty);
-DEF_PROC(clt_multi_get);
-
-DEF_PROC(clt_stat);
-DEF_PROC(clt_stat_pretty);
-DEF_PROC(clt_drop);
-DEF_PROC(clt_clear);
-
 //manager
 DEF_PROC(sync140);
 DEF_PROC(info);
 DEF_PROC(version);
-DEF_PROC(keysize);
-DEF_PROC(dbsize);
 DEF_PROC(compact);
 DEF_PROC(clear_binlog);
 DEF_PROC(flushdb);
-DEF_PROC(namespaces);
-DEF_PROC(dbsizecron);
 DEF_PROC(lowertime);
 DEF_PROC(alarm);
 DEF_PROC(clear_slowrequest);
@@ -186,8 +156,6 @@ DEF_PROC(retrievekey);
 #define REG_PROC(c, f)     net->proc_map.set_proc(#c, f, proc_##c)
 
 void SSDBServer::reg_procs(NetworkServer *net){
-
-
 	REG_PROC(type, "rt"),
 	REG_PROC(del, "wt"),
 	REG_PROC(ttl, "rt"),
@@ -309,31 +277,6 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(lget, "rt");
 	REG_PROC(lset, "wt");
 
-	//table
-	REG_PROC(clt_create, "wt");
-	REG_PROC(clt_recreate, "wt");
-	REG_PROC(clt_isbuilding, "rt");
-	REG_PROC(clt_insert, "wt");
-	REG_PROC(clt_upsert, "wt");
-	REG_PROC(clt_find, "rt");
-	REG_PROC(clt_update, "wt");
-	REG_PROC(clt_remove, "wt");
-	REG_PROC(clt_clear, "wt");
-	REG_PROC(clt_stat, "rt");
-	REG_PROC(clt_stat_pretty, "rt");
-	REG_PROC(clt_drop, "wt");
-	REG_PROC(clt_create_pretty, "wt");
-	REG_PROC(clt_recreate_pretty, "wt");
-	REG_PROC(clt_insert_pretty, "wt");
-	REG_PROC(clt_upsert_pretty, "wt");
-	REG_PROC(clt_find_pretty, "rt");
-	REG_PROC(clt_get, "rt");
-	REG_PROC(clt_get_pretty, "rt");
-	REG_PROC(clt_multi_get, "rt");
-	REG_PROC(clt_multi_get_pretty, "rt");
-	REG_PROC(clt_update_pretty, "wt");
-	REG_PROC(clt_remove_pretty, "wt");
-
 	REG_PROC(clear_binlog, "wt");
 	REG_PROC(flushdb, "wt");
 
@@ -341,8 +284,6 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(sync140, "b");
 	REG_PROC(info, "rt");
 	REG_PROC(version, "r");
-	REG_PROC(keysize, "rt");
-	REG_PROC(dbsize, "rt");
 
 	// doing compaction in a reader thread, because we have only one
 	// writer thread(for performance reason); we don't want to block writes
@@ -362,8 +303,6 @@ void SSDBServer::reg_procs(NetworkServer *net){
 	REG_PROC(config, "rt");
 	REG_PROC(slaveof, "rt");
 	REG_PROC(retrievekey, "rt");
-	REG_PROC(namespaces, "rt");
-	REG_PROC(dbsizecron, "rt");
 	REG_PROC(lowertime, "rt");
 	REG_PROC(alarm, "rt");
 	REG_PROC(clear_slowrequest, "wt");
@@ -387,9 +326,6 @@ SSDBServer::SSDBServer(SSDB *ssdb, SSDB *meta, const Config &conf, NetworkServer
 	releasehandler = new RubbishRelease(this->ssdb);
 	this->ssdb->releasehandler = this->releasehandler;
 
-	monitor_handler = new MonitorThread(this->ssdb, this->meta);
-	this->ssdb->monitor_handler = this->monitor_handler;
-	
 	{ // slaves
 		const Config *repl_conf = conf.get("replication");
 		if(repl_conf != NULL){
@@ -442,7 +378,6 @@ SSDBServer::~SSDBServer(){
 	delete backend_sync;
 	delete expiration;
 	delete releasehandler;
-	delete monitor_handler;
 	
 	log_debug("SSDBServer finalized");
 }
@@ -492,8 +427,6 @@ void SSDBServer::SlaveInfo(std::string &info)
 	info.append(tmp_stream.str());
 }
 
-/*********************/
-
 int proc_clear_binlog(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	SSDBServer *serv = (SSDBServer *)net->data;
 	serv->ssdb->binlogs->flush();
@@ -536,46 +469,6 @@ int proc_compact(NetworkServer *net, Link *link, const Request &req, Response *r
 int proc_dbsize(NetworkServer *net, Link *link, const Request &req, Response *resp){
 	resp->push_back("ok");
 	resp->push_back(str(0));
-	return 0;
-}
-
-int proc_keysize(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	SSDBServer *serv = (SSDBServer *)net->data;
-	CHECK_NUM_PARAMS(2);
-
-	std::string size = serv->monitor_handler->getKeySize(req[1]);
-	resp->push_back("ok");
-	resp->push_back(size);
-	return 0;
-}
-
-int proc_namespaces(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	SSDBServer *serv = (SSDBServer *)net->data;
-
-	std::vector<std::string> list;
-	serv->monitor_handler->getNameSpaces(list);
-
-	resp->reply_list(0, list);
-	return 0;
-}
-
-int proc_dbsizecron(NetworkServer *net, Link *link, const Request &req, Response *resp){
-	SSDBServer *serv = (SSDBServer *)net->data;
-	if (req.size() == 1) {
-		resp->push_back("ok");
-		resp->push_back(str(serv->monitor_handler->dbSizeCron()));
-	} else{
-		int second = req[1].Int();
-
-		if (second > 0) {
-			serv->monitor_handler->setDbSizeCron(second);
-			resp->push_back("ok");
-			resp->push_back("ok");
-		} else {
-			resp->push_back("error");
-			resp->push_back("time invalid");
-		}
-	}
 	return 0;
 }
 
@@ -765,9 +658,6 @@ int proc_info(NetworkServer *net, Link *link, const Request &req, Response *resp
         serv->ssdb->DiskInfo(sInfo);
     }
 
-    if (bAllSection || !strcasecmp(section, "data")) {
-    	serv->monitor_handler->DataInfo(sInfo);
-    }
 
     if (bAllSection || !strcasecmp(section, "cmd")) {
         sInfo.append("# Cmd（calls,time_wait,time_proc）\r\n");

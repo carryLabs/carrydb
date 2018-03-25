@@ -3,7 +3,6 @@
 #include "t_hash.h"
 #include "t_zset.h"
 #include "t_list.h"
-#include "t_table.h"
 
 #define BATCH_SIZE    1000
 
@@ -255,10 +254,6 @@ std::string RubbishRelease::encode_data_key_start(const char type, const Bytes &
 			key_s = EncodeHashKey(name, "", version);		
 			break;
 		}
-		case DataType::TABLE:{
-			key_s = EncodeCltPrefixKey(name, version);
-			break;
-		}
 	}
 	return key_s;
 }
@@ -276,11 +271,6 @@ std::string RubbishRelease::encode_data_key_end(const char type, const Bytes &na
 		}
 		case DataType::HSIZE:{
 			key_e = EncodeHashKey(name, "\xff", version);
-			break;
-		}
-		case DataType::TABLE:{
-			key_e = EncodeCltPrefixKey(name, version);
-			key_e.append(1, 255);
 			break;
 		}
 	}

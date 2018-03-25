@@ -8,7 +8,6 @@ all:
 	chmod u+x deps/cpy/cpy
 	chmod u+x tools/carrydb-cli
 	cd "${LEVELDB_PATH}"; ${MAKE} static_lib #PORTABLE=1
-	cd "${BSON_PATH}"; ${MAKE}
 	cd src/util; ${MAKE}
 	cd src/net; ${MAKE}
 	cd src/client; ${MAKE}
@@ -66,5 +65,4 @@ clean_all: clean
 	rm -f ${JEMALLOC_PATH}/Makefile
 	cd "${SNAPPY_PATH}"; ${MAKE} clean
 	rm -f ${SNAPPY_PATH}/Makefile
-	cd "${BSON_PATH}"; ${MAKE} clean
 	

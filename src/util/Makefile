@@ -1,6 +1,6 @@
 include ../../build_config.mk
 
-OBJS = log.o config.o bytes.o sorted_set.o app.o crc32.o slots.o dict.o bson_tool.o cmdinfo.o
+OBJS = log.o config.o bytes.o sorted_set.o app.o crc32.o slots.o dict.o
 EXES = 
 
 all: ${OBJS}
@@ -29,12 +29,6 @@ slots.o: slots.h slots.cpp
 
 dict.o: dict.h dict.cpp
 	${CXX} ${CFLAGS} -c dict.cpp
-
-bson_tool.o: const.h bson_tool.h bson_tool.cpp
-	${CXX} ${CFLAGS} -c bson_tool.cpp
-
-cmdinfo.o: cmdinfo.h cmdinfo.cpp
-	${CXX} ${CFLAGS} -c cmdinfo.cpp
 
 test:
 	$(CXX) ${CFLAGS} test_sorted_set.cpp $(OBJS)

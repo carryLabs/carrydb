@@ -17,13 +17,11 @@ found in the LICENSE file.
 #include "../util/slots.h"
 #include "../util/strings.h"
 #include "../util/methods.h"
-#include "../util/cmdinfo.h"
 #include "t_meta.h"
 #include "binlog.h"
 #include "iterator.h"
 #include "ttl.h"
 #include "rubbish_release.h"
-#include "monitor_thread.h"
 
 inline
 static leveldb::Slice slice(const Bytes &b){
@@ -44,7 +42,6 @@ public:
 	bool is_mirror_;
 	ExpirationHandler *expiration;
 	RubbishRelease *releasehandler;
-	MonitorThread *monitor_handler = nullptr;
 	std::string dbpath;
 	int is_compact_ = 0;
 
@@ -195,22 +192,6 @@ public:
 	virtual int sync_zset_ttl(const Bytes &name, const Bytes &key, const Bytes &score, 
 					  const char *mstIp, int mstPort, char log_type=BinlogType::SYNC);
 
-	//table
-	virtual int clt_create(const Bytes &name, bson_t **data, char log_type=BinlogType::SYNC);
-	virtual int clt_insert(const Bytes &name, bson_t *data,  Condition &opts, char log_type=BinlogType::SYNC);
-	virtual int clt_find(const Bytes &name, bson_t *data, Condition &opts, std::vector<std::string> *list);
-	virtual int clt_update(const Bytes &name, bson_t *query, bson_t *update, 
-								Condition &opts, char log_type=BinlogType::SYNC);
-	virtual int clt_remove(const Bytes &name, bson_t *data, Condition &opts, char log_type=BinlogType::SYNC);
-	virtual int clt_stat(const Bytes &name, std::string *val);
-	virtual int clt_drop(const Bytes &name,char log_type=BinlogType::SYNC);
-	virtual int sync_clt_remove(const Bytes &name, const Bytes &pkey, char log_type=BinlogType::SYNC);
-	virtual int clt_get(const Bytes &name, bson_t *data, std::string *val);
-	virtual int clt_multi_get(const Bytes &name, const std::vector<bson_t *> &keys, std::vector<std::string> *reult);
-	virtual int clt_clear(const Bytes &name, char log_type=BinlogType::SYNC);
-	virtual int clt_recreate(const Bytes &name, bson_t **data, Condition &opts, char log_type=BinlogType::SYNC);
-	virtual int clt_isbuilding(const Bytes &name);
-	
 	//global
 	virtual Iterator* scan_slot(char type, unsigned int slot, const Bytes &start, const Bytes &end, uint64_t limit);
 	virtual Iterator* rscan_slot(char type, unsigned int slot, const Bytes &start, const Bytes &end, uint64_t limit);
@@ -221,7 +202,6 @@ public:
 	virtual int incrSlotsRefCount(const Bytes &name, TMH &metainfo, int incr);
  	
  	virtual int VerifyStructState(TMH *pth, const Bytes &name, const char datatype, std::string *val = nullptr);
- 	virtual int InitCltCmdInfo(CltCmdInfo *ptr_cmd, const Bytes &name, bson_t *query, bson_t *update, Condition *opts);
  	virtual int loadobjectbyname(TMH *pth, const Bytes &name, const char datatype, bool expire, std::string *val = nullptr);
  	void checkObjectExpire(TMH &metainfo, const Bytes &name, int ret);
  	void incrNsRefCount(char datatype, const Bytes &name, int incr);
@@ -236,9 +216,6 @@ public:
 	int IsCompact(){
 		return is_compact_;
 	}
-	int scan_index_infos(std::set<std::string> *keys, CltCmdInfo *opts, const Column &index);
-	CltKeyIterator *scan_primary_keys(const std::set<std::string> *keys, CltCmdInfo *opts);
-	int RemoveIndexs(std::set<Column> *keys, CltCmdInfo *option, bson_t *oldval, const Bytes &prefix, const Bytes &pkey);
 private:
 	int64_t _lpush(const Bytes &name, const Bytes &item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);
 	int _lpop(const Bytes &name, std::string *item, uint64_t front_or_back_seq, char log_type=BinlogType::SYNC);

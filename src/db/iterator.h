@@ -22,7 +22,6 @@ enum IteratorType{
 	kHIter,
 	kZIter,
 	kQIter,
-	kCltIter,
 	kTblPkeyIter,
 	kTblIdxIter,
 	kMetaIter
@@ -39,8 +38,6 @@ static IteratorType dataType2IterType2(char dtType){
 			return kZIter;
 		case DataType::LSIZE:
 			return kQIter;
-		case DataType::TABLE:
-			return kCltIter;
 	}
 	return kRawIter;
 }
@@ -179,58 +176,9 @@ class QIterator: public Iterator
 		int decode_value();
 };
 
-class CltIterator: public Iterator
-{
-	public:
-		CltIterator(leveldb::Iterator *it, const Bytes &name, int64_t version,
-					const std::string &end, uint64_t limit, Direction direction);
-		~CltIterator();
-		bool next();
-		virtual std::string key();
-	private:
-		int decode_key();
-		int decode_value();
-};
-
-class CltIdxIterator: public Iterator
-{
-	public:
-		CltIdxIterator(leveldb::Iterator *it, const Bytes &name, const Bytes &index, int64_t version,
-					const std::string &end, uint64_t limit, Direction direction);
-
-		~CltIdxIterator();
-		bool next();
-
-	private:
-		std::string index_;
-		int decode_key();
-		int decode_value(){ return 1;}
-};
-
-class CltKeyIterator: public Iterator
-{
-	public:
-		CltKeyIterator(leveldb::Iterator *it, const Bytes &name, int64_t version,
-					const std::string &end, uint64_t limit, Direction direction);
-
-		~CltKeyIterator();
-		bool next();
-		int decode();
-	private:
-		int decode_key();
-		int decode_value();
-};
-
-
 class IteratorFactory
 {
 public:
-	static CltIdxIterator* clt_idx_iterator(const SSDB *ssdb, const Bytes &name, const Bytes &index, 
-							int64_t version, const std::string &start, const std::string &end, uint64_t limit, int32_t desc);
-
-	static CltKeyIterator* clt_key_iterator(const SSDB *ssdb, const Bytes &name,
-							int64_t version, const std::string &start, const std::string &end, uint64_t limit, int32_t desc);
-
 	// return (start, end], not include start
 	static Iterator* iterator(const SSDB *ssdb, const char dataType, const std::string &start, const std::string &end, uint64_t limit);
 	static Iterator* rev_iterator(const SSDB *ssdb, const char dataType, const std::string &start, const std::string &end, uint64_t limit);
@@ -242,7 +190,6 @@ public:
 							const std::string &start, const std::string &end, uint64_t limit);
 // private:
 	static leveldb::Iterator *internal_iterator(const SSDB *ssdb, const std::string &start, Iterator::Direction direct);
-	static leveldb::Iterator *internal_clt_iterator(const SSDB *ssdb, const std::string &start, Iterator::Direction direct);
     static Iterator *createIter(IteratorType dtType, leveldb::Iterator *it, const Bytes &name, int64_t version, 
     							const std::string &start, const std::string &end, uint64_t limit, Iterator::Direction direct);
 };

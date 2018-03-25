@@ -54,11 +54,11 @@ slotsmgrt_sockfd *dict::newMgrtNonBlockConnFd(const char *ip, int port, int mill
     }
     anetEnableTcpNoDelay(fd);
     //todo time
-    if ((aeWait(fd, AE_WRITABLE, milltimeout) & AE_WRITABLE) == 0) {
-        log_error("slotsmgrt: connect to target %s:%s, aewait error", ip, port);
-        close(fd);
+    //if ((aeWait(fd, AE_WRITABLE, milltimeout) & AE_WRITABLE) == 0) {
+    //    log_error("slotsmgrt: connect to target %s:%s, aewait error", ip, port);
+   //     close(fd);
         return NULL;
-    }
+   // }
     pfd = new slotsmgrt_sockfd;
     pfd->fd = fd;
     pfd->lasttime = time_ms();
